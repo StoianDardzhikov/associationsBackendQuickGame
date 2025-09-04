@@ -15,7 +15,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''
-                    cd associationsBackendQuickGame
+                    ls -l
                     mvn -B -f pom.xml clean install -DskipTests
                 '''
             }
