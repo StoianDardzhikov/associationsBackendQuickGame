@@ -37,7 +37,7 @@ pipeline {
                     sh 'docker rm asso-bg || true'
 
                     // Run the new Docker container, mapping port 8080 of the container to port 8081 on the host
-                    docker.image("${env.DOCKER_IMAGE}:${env.BUILD_ID}").run('-p 8082:80 --name asso-bg')
+                    docker.image("${env.DOCKER_IMAGE}:${env.BUILD_ID}").run('-p 8082:8080 --name asso-bg')
                 }
             }
         }
