@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'master', url: 'https://github.com/StoianDardzhikov/stoyan-bg-frontend.git'
+                git branch: 'master', url: 'https://github.com/StoianDardzhikov/associationsBackendQuickGame.git'
             }
         }
 
@@ -25,11 +25,11 @@ pipeline {
             steps {
                 script {
                     // Stop and remove any existing container named spring-boot-app
-                    sh 'docker stop stoyan-bg-frontend || true'
-                    sh 'docker rm stoyan-bg-frontend || true'
+                    sh 'docker stop asso-bg || true'
+                    sh 'docker rm asso-bg || true'
 
                     // Run the new Docker container, mapping port 8080 of the container to port 8081 on the host
-                    docker.image("${env.DOCKER_IMAGE}:${env.BUILD_ID}").run('-p 8081:80 --name stoyan-bg-frontend')
+                    docker.image("${env.DOCKER_IMAGE}:${env.BUILD_ID}").run('-p 8082:80 --name asso-bg')
                 }
             }
         }
