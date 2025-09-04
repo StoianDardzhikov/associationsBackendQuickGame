@@ -1,5 +1,7 @@
 package com.stoyan.associationGame;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,11 +9,15 @@ import java.util.List;
 public class Game {
     public static int GAMES_COUNT = 0;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private int id;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<Player> players = new ArrayList<Player>();
     private List<String> category;
     private int playersPerTeam;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<String> words = new ArrayList<>();
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<Team> teams;
 
     public void addPointToTeam(int playerId) {

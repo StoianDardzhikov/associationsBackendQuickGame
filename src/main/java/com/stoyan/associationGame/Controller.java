@@ -1,5 +1,6 @@
 package com.stoyan.associationGame;
 
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,8 @@ public class Controller {
     static String[] teamColors = new String[]{"Сини", "Зелени", "Червени", "Розови", "Оранжеви", "Бели"};
 
     static HashMap<Integer, Game> gameList = new HashMap<>();
+    @Autowired
+    private AssociationGameApplication associationGameApplication;
 
     @Operation
     @GetMapping("/game")
@@ -69,9 +72,17 @@ public class Controller {
         Collections.shuffle(game.getPlayers());
         for (int i = 0; i < playerCount; i++) {
             teams.get(i % teamCount).getPlayers().add(game.getPlayers().get(i));
+            String color = teamColors[i];
+            game.getPlayers().get(i).setColor(color);
         }
         game.setTeams(teams);
-
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String message = mapper.writeValueAsString(new StartGameEvent(game.getPlayers()));
+            simpleTextHandler.broadcast(gameId, message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return teams;
     }
 
