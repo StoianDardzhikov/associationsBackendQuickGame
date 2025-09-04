@@ -12,10 +12,18 @@ pipeline {
             }
         }
 
+        stage('Build') {
+            steps {
+                sh '''
+                    cd associationsBackendQuickGame
+                    mvn -B -f pom.xml clean install -DskipTests
+                '''
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image with a unique tag using the BUILD_ID
                     docker.build("${env.DOCKER_IMAGE}:${env.BUILD_ID}")
                 }
             }
