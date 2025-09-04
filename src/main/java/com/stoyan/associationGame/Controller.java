@@ -40,10 +40,18 @@ public class Controller {
 
     @Operation
     @PostMapping("/game/join")
-    Player joinGame(@RequestParam String playerName, @RequestParam int gameId) {
+    Player joinGame(@RequestParam String playerName, @RequestParam int gameId, @RequestBody List<String> words) {
         Player player = new Player(Player.PLAYER_COUNT++, playerName);
         Game game = gameList.get(gameId);
         game.getPlayers().add(player);
+        game.getWords().addAll(words);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String message = mapper.writeValueAsString(new JoinEvent(playerName));
+            simpleTextHandler.broadcast(gameId, message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return player;
     }
 
@@ -75,7 +83,7 @@ public class Controller {
         List<Team> teams = game.getTeams();
         try {
             ObjectMapper mapper = new ObjectMapper();
-            String message = mapper.writeValueAsString(teams);
+            String message = mapper.writeValueAsString(new ScoreEvent(teams));
             simpleTextHandler.broadcast(game.getId(), message);
         } catch (Exception e) {
             e.printStackTrace();
