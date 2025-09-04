@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 public class Player {
 
-    public static int PLAYER_COUNT = 0;
+    public static int PLAYER_COUNT = 1;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private int id;

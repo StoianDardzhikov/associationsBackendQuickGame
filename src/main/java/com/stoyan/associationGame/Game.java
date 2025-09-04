@@ -7,7 +7,7 @@ import java.util.List;
 
 
 public class Game {
-    public static int GAMES_COUNT = 0;
+    public static int GAMES_COUNT = 1;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private int id;
