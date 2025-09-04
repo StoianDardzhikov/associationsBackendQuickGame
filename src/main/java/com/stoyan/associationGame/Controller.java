@@ -26,6 +26,13 @@ public class Controller {
         return gameList.values().stream().toList();
     }
 
+
+    @Operation
+    @GetMapping("/game/{id}")
+    Game getGames(@PathVariable int id) {
+        return gameList.get(id);
+    }
+
     @Operation
     @PostMapping("/game")
     Game addGame(@RequestBody Game game) {
