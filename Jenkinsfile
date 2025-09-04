@@ -2,13 +2,13 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'stoyan-bg-frontend'  // Name of the Docker image
+        DOCKER_IMAGE = 'asso-bg'
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'master', url: 'https://github.com/StoianDardzhikov/associationsBackendQuickGame.git'
+                git branch: 'main', url: 'https://github.com/StoianDardzhikov/associationsBackendQuickGame.git'
             }
         }
 
