@@ -79,7 +79,7 @@ public class Controller {
         Collections.shuffle(game.getPlayers());
         for (int i = 0; i < playerCount; i++) {
             teams.get(i % teamCount).getPlayers().add(game.getPlayers().get(i));
-            String color = teamColors[i];
+            String color = teamColors[i % teamCount];
             game.getPlayers().get(i).setColor(color);
         }
         game.setTeams(teams);
