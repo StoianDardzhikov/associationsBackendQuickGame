@@ -15,11 +15,20 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''
-                    ls -l
-                    java -version
-                    mvn -v
-                    mvn -B -f pom.xml clean install -DskipTests
-                '''
+    # 1. Force the environment strictly to Java 17
+    export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    export PATH=$JAVA_HOME/bin:$PATH
+    
+    # 2. Verify the fix
+    java -version
+    javac -version
+    
+    # 3. Give execution permissions to the Maven wrapper
+    chmod +x mvnw
+    
+    # 4. Use the wrapper (./mvnw) instead of system Maven (mvn)
+    ./mvnw -B -f pom.xml clean install -DskipTests
+'''
             }
         }
 
