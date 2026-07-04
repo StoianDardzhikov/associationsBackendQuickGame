@@ -16,6 +16,8 @@ pipeline {
             steps {
                 sh '''
                     ls -l
+                    java -version
+                    mvn -v
                     mvn -B -f pom.xml clean install -DskipTests
                 '''
             }
