@@ -24,6 +24,9 @@ public class RoundState {
     /** Seconds left frozen at the moment the round was paused/ended. Used when not active. */
     private int frozenSeconds;
 
+    /** Full length of the round, so clients can draw a progress ring. */
+    private int totalSeconds;
+
     public int getSecondsLeft() {
         if (!active) {
             return Math.max(0, frozenSeconds);
@@ -32,7 +35,12 @@ public class RoundState {
         return (int) Math.max(0, Math.round(remainingMillis / 1000.0));
     }
 
-    public void update(boolean active, int secondsLeft, int round, String contestantName, String teamColor, boolean finished) {
+    public void update(boolean active, int secondsLeft, int round, String contestantName, String teamColor, boolean finished, int totalSeconds) {
+        // 0 means "unchanged": the host only sends the total when a round starts,
+        // not on every heartbeat.
+        if (totalSeconds > 0) {
+            this.totalSeconds = totalSeconds;
+        }
         this.active = active;
         this.finished = finished;
         this.round = round;
@@ -96,5 +104,13 @@ public class RoundState {
 
     public void setFrozenSeconds(int frozenSeconds) {
         this.frozenSeconds = frozenSeconds;
+    }
+
+    public int getTotalSeconds() {
+        return totalSeconds;
+    }
+
+    public void setTotalSeconds(int totalSeconds) {
+        this.totalSeconds = totalSeconds;
     }
 }

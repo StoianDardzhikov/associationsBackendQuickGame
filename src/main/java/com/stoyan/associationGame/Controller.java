@@ -84,7 +84,7 @@ public class Controller {
             game.getPlayers().get(i).setColor(color);
         }
         game.setTeams(teams);
-        game.getRoundState().update(false, 0, 1, null, null, false);
+        game.getRoundState().update(false, 0, 1, null, null, false, 0);
         broadcast(gameId, new StartGameEvent(game.getPlayers()));
         return teams;
     }
@@ -109,10 +109,11 @@ public class Controller {
                            @RequestParam(required = false, defaultValue = "0") int round,
                            @RequestParam(required = false) String contestantName,
                            @RequestParam(required = false) String teamColor,
-                           @RequestParam(required = false, defaultValue = "false") boolean finished) {
+                           @RequestParam(required = false, defaultValue = "false") boolean finished,
+                           @RequestParam(required = false, defaultValue = "0") int totalSeconds) {
         Game game = requireGame(gameId);
         RoundState roundState = game.getRoundState();
-        roundState.update(active, secondsLeft, round, contestantName, teamColor, finished);
+        roundState.update(active, secondsLeft, round, contestantName, teamColor, finished, totalSeconds);
         broadcast(gameId, new RoundEvent(roundState, game.getTeams()));
         return roundState;
     }
