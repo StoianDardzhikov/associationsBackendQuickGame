@@ -21,6 +21,20 @@ public class Game {
     private List<Team> teams;
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private RoundState roundState = new RoundState();
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private GameStats stats = new GameStats();
+
+    public Player findPlayer(int playerId) {
+        if (players == null) {
+            return null;
+        }
+        for (Player player : players) {
+            if (player.getId() == playerId) {
+                return player;
+            }
+        }
+        return null;
+    }
 
     public void addPointToTeam(int playerId) {
         if (teams == null) {
@@ -88,5 +102,13 @@ public class Game {
 
     public void setRoundState(RoundState roundState) {
         this.roundState = roundState;
+    }
+
+    public GameStats getStats() {
+        return stats;
+    }
+
+    public void setStats(GameStats stats) {
+        this.stats = stats;
     }
 }

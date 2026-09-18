@@ -6,10 +6,12 @@ public class RoundEvent {
     private String event = "round";
     private RoundState roundState;
     private List<Team> teams;
+    private GameStats stats;
 
-    public RoundEvent(RoundState roundState, List<Team> teams) {
+    public RoundEvent(RoundState roundState, List<Team> teams, GameStats stats) {
         this.roundState = roundState;
         this.teams = teams;
+        this.stats = stats;
     }
 
     public String getEvent() {
@@ -34,5 +36,13 @@ public class RoundEvent {
 
     public void setTeams(List<Team> teams) {
         this.teams = teams;
+    }
+
+    public GameStats getStats() {
+        return stats;
+    }
+
+    public void setStats(GameStats stats) {
+        this.stats = stats;
     }
 }

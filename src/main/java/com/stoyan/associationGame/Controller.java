@@ -91,10 +91,26 @@ public class Controller {
 
     @Operation
     @PostMapping("/game/score")
-    void scorePoint(@RequestParam int gameId, @RequestParam int playerId) {
+    void scorePoint(@RequestParam int gameId,
+                    @RequestParam int playerId,
+                    @RequestParam(required = false) String word) {
         Game game = requireGame(gameId);
         game.addPointToTeam(playerId);
+        recordWord(game, playerId, word, true);
         broadcast(gameId, new ScoreEvent(game.getTeams()));
+    }
+
+    /**
+     * A word the explainer gave up on. Scores nothing - it only feeds the end-of-game
+     * recap, so there is no broadcast; clients pick it up on their next poll.
+     */
+    @Operation
+    @PostMapping("/game/skip")
+    void skipWord(@RequestParam int gameId,
+                  @RequestParam int playerId,
+                  @RequestParam(required = false) String word) {
+        Game game = requireGame(gameId);
+        recordWord(game, playerId, word, false);
     }
 
     /**
@@ -114,7 +130,9 @@ public class Controller {
         Game game = requireGame(gameId);
         RoundState roundState = game.getRoundState();
         roundState.update(active, secondsLeft, round, contestantName, teamColor, finished, totalSeconds);
-        broadcast(gameId, new RoundEvent(roundState, game.getTeams()));
+        // The stats ride along so the recap appears the moment the game ends, rather
+        // than on the next poll.
+        broadcast(gameId, new RoundEvent(roundState, game.getTeams(), game.getStats()));
         return roundState;
     }
 
@@ -123,6 +141,11 @@ public class Controller {
     void deleteGame(@RequestParam int gameId) {
         gameList.remove(gameId);
         simpleTextHandler.removeGame(gameId);
+    }
+
+    private void recordWord(Game game, int playerId, String word, boolean guessed) {
+        Player player = game.findPlayer(playerId);
+        game.getStats().record(playerId, player == null ? null : player.getName(), word, guessed);
     }
 
     private Game requireGame(int gameId) {
