@@ -4,12 +4,16 @@ package com.stoyan.associationGame;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
 @RestController
 public class Controller {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Autowired
     private SimpleTextHandler simpleTextHandler;
@@ -30,7 +34,7 @@ public class Controller {
     @Operation
     @GetMapping("/game/{id}")
     Game getGames(@PathVariable int id) {
-        return gameList.get(id);
+        return requireGame(id);
     }
 
     @Operation
@@ -52,25 +56,22 @@ public class Controller {
     @PostMapping("/game/join")
     Player joinGame(@RequestParam String playerName, @RequestParam int gameId, @RequestBody List<String> words) {
         Player player = new Player(Player.PLAYER_COUNT++, playerName);
-        Game game = gameList.get(gameId);
+        Game game = requireGame(gameId);
         game.getPlayers().add(player);
         game.getWords().addAll(words);
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            String message = mapper.writeValueAsString(new JoinEvent(playerName));
-            simpleTextHandler.broadcast(gameId, message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        broadcast(gameId, new JoinEvent(playerName));
         return player;
     }
 
     @Operation
     @PostMapping("/game/start")
     List<Team> startGame(@RequestParam int gameId) {
-        Game game = gameList.get(gameId);
+        Game game = requireGame(gameId);
         int playerCount = game.getPlayers().size();
-        int teamCount = (int) Math.ceil( ((double) playerCount) / game.getPlayersPerTeam());
+        int playersPerTeam = Math.max(1, game.getPlayersPerTeam());
+        int teamCount = (int) Math.ceil(((double) playerCount) / playersPerTeam);
+        // Never ask for more teams than we have colours for, and always make at least one.
+        teamCount = Math.min(Math.max(teamCount, 1), teamColors.length);
         List<Team> teams = new ArrayList<>();
         for (int i = 0; i < teamCount; i++) {
             teams.add(new Team());
@@ -83,34 +84,60 @@ public class Controller {
             game.getPlayers().get(i).setColor(color);
         }
         game.setTeams(teams);
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            String message = mapper.writeValueAsString(new StartGameEvent(game.getPlayers()));
-            simpleTextHandler.broadcast(gameId, message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        game.getRoundState().update(false, 0, 1, null, null, false);
+        broadcast(gameId, new StartGameEvent(game.getPlayers()));
         return teams;
     }
 
     @Operation
     @PostMapping("/game/score")
     void scorePoint(@RequestParam int gameId, @RequestParam int playerId) {
-        Game game = gameList.get(gameId);
+        Game game = requireGame(gameId);
         game.addPointToTeam(playerId);
-        List<Team> teams = game.getTeams();
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            String message = mapper.writeValueAsString(new ScoreEvent(teams));
-            simpleTextHandler.broadcast(game.getId(), message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        broadcast(gameId, new ScoreEvent(game.getTeams()));
+    }
+
+    /**
+     * Published by the host whenever the countdown changes (round start, skip penalty, round end).
+     * Clients tick down locally between updates and re-sync on every websocket event or poll.
+     */
+    @Operation
+    @PostMapping("/game/round")
+    RoundState updateRound(@RequestParam int gameId,
+                           @RequestParam boolean active,
+                           @RequestParam int secondsLeft,
+                           @RequestParam(required = false, defaultValue = "0") int round,
+                           @RequestParam(required = false) String contestantName,
+                           @RequestParam(required = false) String teamColor,
+                           @RequestParam(required = false, defaultValue = "false") boolean finished) {
+        Game game = requireGame(gameId);
+        RoundState roundState = game.getRoundState();
+        roundState.update(active, secondsLeft, round, contestantName, teamColor, finished);
+        broadcast(gameId, new RoundEvent(roundState, game.getTeams()));
+        return roundState;
     }
 
     @Operation
     @DeleteMapping("/game/delete")
     void deleteGame(@RequestParam int gameId) {
         gameList.remove(gameId);
+        simpleTextHandler.removeGame(gameId);
+    }
+
+    private Game requireGame(int gameId) {
+        Game game = gameList.get(gameId);
+        if (game == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game " + gameId + " not found");
+        }
+        return game;
+    }
+
+    /** Best effort: a websocket problem must never fail the HTTP call, clients also poll. */
+    private void broadcast(int gameId, Object event) {
+        try {
+            simpleTextHandler.broadcast(gameId, MAPPER.writeValueAsString(event));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

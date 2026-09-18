@@ -19,8 +19,13 @@ public class Game {
     private List<String> words = new ArrayList<>();
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<Team> teams;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private RoundState roundState = new RoundState();
 
     public void addPointToTeam(int playerId) {
+        if (teams == null) {
+            return;
+        }
         for (Team team : teams) {
             if (team.userIsPartOf(playerId)) {
                 team.increasePoints();
@@ -75,5 +80,13 @@ public class Game {
 
     public void setTeams(List<Team> teams) {
         this.teams = teams;
+    }
+
+    public RoundState getRoundState() {
+        return roundState;
+    }
+
+    public void setRoundState(RoundState roundState) {
+        this.roundState = roundState;
     }
 }
